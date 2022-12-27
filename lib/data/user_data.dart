@@ -1,5 +1,7 @@
 // ignore_for_file: file_names
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,10 +15,10 @@ class UserData extends StatefulWidget {
 }
 
 class _UserDataState extends State<UserData> {
-  static late SharedPreferences prefs;
-  static late String name;
-  static late String age;
-  static late bool done;
+  static SharedPreferences? prefs;
+  static String name = "";
+  static String age = '';
+  static bool done = false;
   final TextEditingController _name = TextEditingController();
   final TextEditingController _age = TextEditingController();
 
@@ -35,55 +37,87 @@ class _UserDataState extends State<UserData> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Nama:', style: TextStyle(fontSize: 20.0)),
-                TextFormField(
-                  controller: _name,
-                  initialValue: name,
-                  keyboardType: TextInputType.name,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your full name',
-                    labelText: 'Full Name',
+                const SizedBox(width: 70, height: 100, child: Text('Nama:', style: TextStyle(fontSize: 20.0))),
+                SizedBox(
+                  width: 280,
+                  height: 50,
+                  child: TextFormField(
+                    controller: _name,
+                    keyboardType: TextInputType.name,
+                    textInputAction: TextInputAction.next,
+                    enabled: (done == false) ? true : false,
+                    decoration: InputDecoration(
+                      label: Text((done == false) ? "" : name),
+                    ),
                   ),
                 ),
               ],
             ),
             Row(
               children: [
-                const Text('Umur:', style: TextStyle(fontSize: 20.0)),
-                TextFormField(
-                  controller: _age,
-                  initialValue: age,
-                  keyboardType: TextInputType.name,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your age',
-                    labelText: 'Age',
+                const SizedBox(width: 70, height: 100, child: Text('Umur:', style: TextStyle(fontSize: 20.0))),
+                SizedBox(
+                  width: 280,
+                  height: 50,
+                  child: TextFormField(
+                    controller: _age,
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.next,
+                    enabled: (done == false) ? true : false,
+                    decoration: InputDecoration(
+                      label: Text((done == false) ? "" : age),
+                    ),
                   ),
                 ),
               ],
             ),
-            IconButton(
-              onPressed: () async {
-                await save().then((value) {
-                  if (value == 0) {
-                    AlertDialog(
-                      title: const Text('Message'),
-                      content: const Text('Data telah diinput'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Get.off(() => const MainMenu());
-                          },
-                          child: const Text('OK'),
-                        )
-                      ],
-                    );
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: const Icon(Icons.save_sharp),
+                iconSize: 36.0,
+                onPressed: () async {
+                  log("Save button is pressed");
+                  if (_name.text.isNotEmpty) {
+                    if (_age.text.isNotEmpty) {
+                      await save();
+                      showDialog(
+                          //like that
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Message'),
+                              content: Text('Data telah diinput\nNama Anda adalah $name, umur adalah $age'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Get.to(() => const MainMenu());
+                                  },
+                                  child: const Text('OK'),
+                                )
+                              ],
+                            );
+                          });
+                    } else {
+                      AlertDialog(
+                        title: const Text('Warning'),
+                        content: const Text('Umur Anda harus diisi!'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Get.off(() => const UserData());
+                            },
+                            child: const Text('OK'),
+                          )
+                        ],
+                      );
+                    }
                   } else {
-                                        AlertDialog(
+                    AlertDialog(
                       title: const Text('Warning'),
-                      content: const Text('Data Anda harus diisi semua!'),
+                      content: const Text('Nama Anda harus diisi!'),
                       actions: [
                         TextButton(
                           onPressed: () {
@@ -94,10 +128,8 @@ class _UserDataState extends State<UserData> {
                       ],
                     );
                   }
-                });
-              },
-              icon: const Icon(Icons.save_as_sharp),
-              iconSize: 28.0,
+                },
+              ),
             ),
           ],
         ),
@@ -107,29 +139,30 @@ class _UserDataState extends State<UserData> {
 
   Future<int> save() async {
     prefs = await SharedPreferences.getInstance();
-    if (_name.text.isNotEmpty && _age.text.isNotEmpty) {
-      prefs.setString("username", _name.text.toString());
-      prefs.setString("age", _age.text);
-      prefs.setBool("inputted", true);
-      name = prefs.getString("username").toString();
-      age = prefs.getString("age").toString();
-      return 0;
-    } else {
-      _name.clear();
-      _age.clear();
-      name = "John Doe";
-      return 1;
-    }
+    log("Trying setState");
+    setState(() {
+      prefs!.setString("username", _name.text.toString());
+      prefs!.setString("age", _age.text);
+      prefs!.setBool("inputted", true);
+    });
+    name = prefs!.getString("username").toString();
+    log(name);
+    age = prefs!.getString("age").toString();
+    log(age);
+    return 0;
   }
 
   Future<void> initShared() async {
     prefs = await SharedPreferences.getInstance();
-    done = prefs.getBool("inputted")!;
+    done = prefs!.getBool("inputted")!;
     if (done == false) {
-      name = "";
+      setState(() {
+        name = "";
+        age = "";
+      });
     } else {
-      name = prefs.getString("username").toString();
-      age = prefs.getString("age").toString();
+      name = prefs!.getString("username").toString();
+      age = prefs!.getString("age").toString();
     }
   }
 }

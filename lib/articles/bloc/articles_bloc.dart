@@ -58,9 +58,9 @@ class ArticlesBloc extends Bloc<ArticlesEvent, ArticlesState> {
           */
           final blogs = await _fetchArticles(state.blog.length);
           if (blogs.isEmpty) {
-            emit(state.copyWith(isMax: true));
+            return emit(state.copyWith(isMax: true));
           } else {
-            emit(
+            return emit(
               state.copyWith(
                 status: Status.success,
                 blog: List.of(state.blog)..addAll(blogs),

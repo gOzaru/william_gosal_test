@@ -9,19 +9,45 @@ class ArticleListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: Card(elevation: 4.0, child: 
-        Row(
-          children: [
-            Text('${blog.id}', style: const TextStyle(fontSize: 30)), 
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start, 
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12.0, 0, 7.0, 12.0),
+        child: Card(
+            elevation: 4.0,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(blog.title, style: const TextStyle(fontSize: 20),),
-                Text(blog.body, style: const TextStyle(fontSize: 20),),
+                SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: Center(
+                      child: Text(
+                        '${blog.id}',
+                        style: const TextStyle(fontSize: 27),
+                      ),
+                    )),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(3.0, 0, 3.0, 6.0),
+                        child: Text(
+                          blog.title,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(3.0, 0, 3.0, 6.0),
+                        child: Text(
+                          blog.body,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               ],
-            )
-          ],
-        )
+            )),
       ),
     );
   }

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:william_gosal_test/articles/bloc/articles_bloc.dart';
 import 'package:william_gosal_test/articles/widgets/article_list_item.dart';
 import 'package:william_gosal_test/articles/widgets/bottom_loader.dart';
@@ -15,6 +16,7 @@ class ArticlesList extends StatefulWidget {
 
 class _ArticlesListState extends State<ArticlesList> {
   final _scrollController = ScrollController();
+  static bool isShown = false;
 
   @override
   void initState() {
@@ -24,39 +26,50 @@ class _ArticlesListState extends State<ArticlesList> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ArticlesBloc, ArticlesState>(
-      builder: (context, state) {
-        switch (state.status) {
-          case Status.failure:
-            return const Center(child: Text('Gagal loading data dari API'));
-          case Status.success:
-            if (state.blog.isEmpty) {
-              return const Center(child: Text('Tidak ada artikel'));
-            }
-            return ListView.builder(
-              itemBuilder: (BuildContext context, int index) {
-                if (state.isMax) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Anda sudah berada pada record terakhir'),
-                    ),
-                  );
-                  return ArticleListItem(blog: state.blog[index]);
-                } else {
-                  if (index >= state.blog.length) {
-                    return const BottomLoader();
-                  } else {
+    return Scaffold(
+      body: BlocBuilder<ArticlesBloc, ArticlesState>(
+        builder: (context, state) {
+          switch (state.status) {
+            case Status.failure:
+              return const Center(child: Text('Gagal loading data dari API'));
+            case Status.success:
+              if (state.blog.isEmpty) {
+                return const Center(child: Text('Tidak ada artikel'));
+              }
+              return ListView.builder(
+                itemBuilder: (BuildContext context, int index) {
+                  if (state.isMax == true) {
+                    WidgetsBinding.instance.scheduleFrameCallback((_) {
+                      if (isShown == false) {
+                        Get.snackbar('Message', 'Anda sudah mencapai record terakhir', snackPosition: SnackPosition.BOTTOM);
+                        isShown = true;
+                      }
+                    }, rescheduling: false);
+                    /*   
+                      <--- Error: Snackbar is shown multiple times --->                   
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Anda sudah mencapai record terakhir")),
+                        );
+                      }); 
+                    */
                     return ArticleListItem(blog: state.blog[index]);
+                  } else {
+                    if (index >= state.blog.length) {
+                      return const BottomLoader();
+                    } else {
+                      return ArticleListItem(blog: state.blog[index]);
+                    }
                   }
-                }
-              },
-              itemCount: state.isMax ? state.blog.length : state.blog.length + 1,
-              controller: _scrollController,
-            );
-          case Status.initial:
-            return const Center(child: CircularProgressIndicator());
-        }
-      },
+                },
+                itemCount: state.isMax ? state.blog.length : state.blog.length + 1,
+                controller: _scrollController,
+              );
+            case Status.initial:
+              return const Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
     );
   }
 

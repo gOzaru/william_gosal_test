@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,8 +14,8 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
-  static late SharedPreferences prefs;
-  static late String name;
+  static SharedPreferences? prefs;
+  static String? name;
 
   @override
   void initState() {
@@ -24,7 +26,11 @@ class _MainMenuState extends State<MainMenu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Bloc Test'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Bloc Test'),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+      ),
       body: displayMenu(),
     );
   }
@@ -34,32 +40,41 @@ class _MainMenuState extends State<MainMenu> {
       children: [
         Align(
           alignment: Alignment.topLeft,
-          child: Text("Hello, $name"),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text("Hello, $name", style: const TextStyle(fontSize: 18.0)),
+          ),
         ),
         Align(
           alignment: Alignment.center,
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () {
-                  Get.off(() => const ArticlesPage());
-                },
-                icon: const Icon(Icons.article_sharp),
-                iconSize: 36.0,
-              ),
-              IconButton(
-                onPressed: () {
-                  Get.off(() => const UserData());
-                },
-                icon: const Icon(Icons.save_sharp),
-                iconSize: 36.0,
-              ),
-            ],
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    Get.to(() => const ArticlesPage());
+                  },
+                  icon: const Icon(Icons.article_sharp),
+                  iconSize: 128.0,
+                ),
+                IconButton(
+                  onPressed: () {
+                    Get.to(() => const UserData());
+                  },
+                  icon: const Icon(Icons.save_sharp),
+                  iconSize: 128.0,
+                ),
+              ],
+            ),
           ),
-        ), 
+        ),
         const Align(
           alignment: Alignment.bottomCenter,
-          child: Text('Copyright Wege @2022'),
+          child: Padding(
+            padding: EdgeInsets.all(12.0),
+            child: Text('Copyright Wege @2022'),
+          ),
         )
       ],
     );
@@ -67,12 +82,17 @@ class _MainMenuState extends State<MainMenu> {
 
   Future<void> initShared() async {
     prefs = await SharedPreferences.getInstance();
-    name = prefs.getString("username").toString();
-    if (name.isEmpty) {
-      name = "John Doe";
-      prefs.setBool("inputted", false);
+    if (prefs!.containsKey("username") == true) {
+      setState(() {
+        name = prefs!.getString("username").toString();
+      });
+      log("true, $name!");
     } else {
-      name = prefs.getString("username").toString();
+      setState(() {
+        prefs!.setBool("inputted", false);
+        name = "John Doe";
+      });
+      log(name!);
     }
   }
 }
