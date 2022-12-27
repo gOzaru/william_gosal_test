@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:william_gosal_test/articles/models/articles.dart';
+import 'package:william_gosal_test/articles/models/article.dart';
 
 class ArticleListItem extends StatelessWidget {
   const ArticleListItem({super.key, required this.blog});

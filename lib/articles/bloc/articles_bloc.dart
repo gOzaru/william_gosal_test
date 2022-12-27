@@ -5,7 +5,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:http/http.dart' as http;
 import 'package:stream_transform/stream_transform.dart';
-import 'package:william_gosal_test/articles/models/articles.dart';
+import 'package:william_gosal_test/articles/models/article.dart';
 
 part 'articles_event.dart';
 part 'articles_state.dart';
