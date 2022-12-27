@@ -1,5 +1,6 @@
 part of 'articles_bloc.dart';
 
+//Status loading dari API
 enum Status { initial, success, failure }
 
 class ArticlesState extends Equatable {
@@ -13,6 +14,7 @@ class ArticlesState extends Equatable {
   final List<Article> blog;
   final bool isMax;
 
+  //copyWith berfungsi memetakan elemen variabel lama dari class ArticlesState ke elemen baru
   ArticlesState copyWith({
     Status? status,
     List<Article>? blog,

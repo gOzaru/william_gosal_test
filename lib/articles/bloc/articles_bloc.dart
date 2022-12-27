@@ -21,6 +21,8 @@ EventTransformer<E> throttleDroppable<E>(Duration duration) {
 }
 
 class ArticlesBloc extends Bloc<ArticlesEvent, ArticlesState> {
+  final http.Client httpClient;
+
   ArticlesBloc({required this.httpClient}) : super(const ArticlesState()) {
     on<ArticlesFetched>(
       _onFetched,
@@ -28,22 +30,19 @@ class ArticlesBloc extends Bloc<ArticlesEvent, ArticlesState> {
     );
   }
 
-  final http.Client httpClient;
-
-  Future<void> _onFetched(
-    ArticlesFetched event,
-    Emitter<ArticlesState> emit,
-  ) async {
+  Future<void> _onFetched(ArticlesFetched event, Emitter<ArticlesState> emit) async {
     if (state.isMax) {
       //Artikel habis
       return;
     } else {
-      //Artikel masih ada
+      //Artikel masih ada.
       try {
         if (state.status == Status.initial) {
-          //Saat awal panggil artikel dari API 
+          /*
+            Saat status bernilai awal, panggil artikel dari API menggunakan metode _fetchArticles().
+            Jika berhasil, ubah status pada ArticlesState menggunakan emit.
+          */
           final blogs = await _fetchArticles();
-          //Output data menggunakan emit
           return emit(
             state.copyWith(
               status: Status.success,
@@ -52,19 +51,21 @@ class ArticlesBloc extends Bloc<ArticlesEvent, ArticlesState> {
             ),
           );
         } else {
-          //Setelah sukses panggil artikel, cek apakah jumlah artikel pada API telah kosong atau belum
+          /*
+            Setelah sukses panggil artikel, cek apakah jumlah artikel pada API telah kosong atau belum
+            Jika kosong, maka nilai variabel isMax menjadi true
+            Jika belum, maka nilainya tetap false
+          */
           final blogs = await _fetchArticles(state.blog.length);
           if (blogs.isEmpty) {
-            //Artikel kosong, maka nilai variabel isMax menjadi true
             emit(state.copyWith(isMax: true));
           } else {
-            //Artikel masih ada, maka variabel isMax tetap bernilai false
             emit(
               state.copyWith(
                 status: Status.success,
                 blog: List.of(state.blog)..addAll(blogs),
                 isMax: false,
-              ), 
+              ),
             );
           }
         }
@@ -76,7 +77,7 @@ class ArticlesBloc extends Bloc<ArticlesEvent, ArticlesState> {
   }
 
   Future<List<Article>> _fetchArticles([int startIndex = 0]) async {
-    //Panggil API melalui httpClient
+    //Panggil lokasi url API menggunakan httpClient
     final response = await httpClient.get(
       Uri.https(
         'jsonplaceholder.typicode.com',
@@ -84,9 +85,14 @@ class ArticlesBloc extends Bloc<ArticlesEvent, ArticlesState> {
         <String, String>{'_start': '$startIndex', '_limit': '$_limit'},
       ),
     );
+    /*
+      Jika API berhasil dipanggil (kode 200), maka gunakan hasil respons sebagai variabel List 
+      Variabel tersebut perlu dipetakan isinya yang berupa json menggunakan map((){}).toList. Jika gagal, tampilkan
+      Exception.
+    */
     if (response.statusCode == 200) {
-      //API berhasil dipanggil
-      final body = json.decode(response.body) as List; //Body's response dipanggil sebagai variabel List
+      //Berhasil
+      final body = json.decode(response.body) as List;
       return body.map((dynamic json) {
         final map = json as Map<String, dynamic>;
         return Article(
